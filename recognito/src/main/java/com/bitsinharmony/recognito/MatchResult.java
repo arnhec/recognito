@@ -27,6 +27,7 @@ package com.bitsinharmony.recognito;
 public class MatchResult<K> {
     
     private final K key;
+    private final String name;
     private final int likelihoodRatio;
     private final double distance;
     
@@ -35,9 +36,10 @@ public class MatchResult<K> {
      * @param key the user defined key for the corresponding VoicePrint
      * @param likelihoodRatio the likelihood ratio expressed as a percentage
      */
-    MatchResult(K key, int likelihoodRatio, double distance) {
+    MatchResult(K key, String name, int likelihoodRatio, double distance) {
         super();
         this.key = key;
+        this.name = name;
         this.likelihoodRatio = likelihoodRatio;
         this.distance = distance;
     }
@@ -66,4 +68,8 @@ public class MatchResult<K> {
     double getDistance() {
         return distance;
     }
+
+	public String getName() {
+		return name;
+	}
 }

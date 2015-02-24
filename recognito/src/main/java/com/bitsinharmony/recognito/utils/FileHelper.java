@@ -50,7 +50,8 @@ public class FileHelper {
             localIs = is;
         }
         
-        
+        System.out.println(localIs.getFormat());
+        System.out.println(localIs.getFrameLength());
         double[] audioSample = new double[(int)localIs.getFrameLength()];
         byte[] buffer = new byte[8192];
         int bytesRead = 0;

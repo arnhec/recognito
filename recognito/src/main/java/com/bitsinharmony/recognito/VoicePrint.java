@@ -39,13 +39,13 @@ public final class VoicePrint
     
     private double[] features;
     private int meanCount;
+    private String name;
 
     
     /**
      * Package visible constructor for Hibernate and the likes
      */
     VoicePrint() {}
-
     /**
      * Contructor for a voice print
      * @param features the features
@@ -55,13 +55,23 @@ public final class VoicePrint
         this.features = features;
         this.meanCount = 1;
     }
+    /**
+     * Contructor for a voice print
+     * @param features the features
+     */
+    VoicePrint(String name, double[] features) {
+        super();
+        this.features = features;
+        this.meanCount = 1;
+        this.name = name;
+    }
 
     /**
      * Copy constructor
      * @param print the VoicePrint to copy
      */
     VoicePrint(VoicePrint print) {
-        this(Arrays.copyOf(print.features, print.features.length));
+        this(print.getName(), Arrays.copyOf(print.features, print.features.length));
     }
 
     /**
@@ -127,5 +137,9 @@ public final class VoicePrint
     public String toString() {
         return Arrays.toString(features);
     }
+
+	public String getName() {
+		return name;
+	}
     
 }

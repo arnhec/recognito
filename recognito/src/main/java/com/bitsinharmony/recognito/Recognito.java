@@ -33,6 +33,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import com.bitsinharmony.recognito.distances.ChebyshevDistanceCalculator;
 import com.bitsinharmony.recognito.distances.DistanceCalculator;
 import com.bitsinharmony.recognito.distances.EuclideanDistanceCalculator;
 import com.bitsinharmony.recognito.enhancements.Normalizer;
@@ -168,7 +169,7 @@ public class Recognito<K> {
      * @param voiceSample the voice sample, values between -1.0 and 1.0
      * @return the voice print extracted from the given sample
      */
-    public synchronized VoicePrint createVoicePrint(K userKey, double[] voiceSample) {
+    public synchronized VoicePrint createVoicePrint(K userKey, String name, double[] voiceSample) {
         if(userKey == null) {
             throw new NullPointerException("The userKey is null");
         }
@@ -177,7 +178,7 @@ public class Recognito<K> {
         }
         
         double[] features = extractFeatures(voiceSample, sampleRate);
-        VoicePrint voicePrint = new VoicePrint(features);
+        VoicePrint voicePrint = new VoicePrint(name, features);
          
         synchronized (this) {
             if (!universalModelWasSetByUser.get()) {
@@ -192,7 +193,6 @@ public class Recognito<K> {
         
         return voicePrint;
     }
-    
     /**
      * Convenience method to load voice samples from files.
      * <p>
@@ -210,7 +210,27 @@ public class Recognito<K> {
         
         double[] audioSample = convertFileToDoubleArray(voiceSampleFile);
 
-        return createVoicePrint(userKey, audioSample);
+        return createVoicePrint(userKey, userKey.toString(), audioSample);
+    }
+ 
+    /**
+     * Convenience method to load voice samples from files.
+     * <p>
+     * See class description for details on files
+     * </p>
+     * @param userKey the user key associated with this voice print
+     * @param voiceSampleFile the file containing the voice sample, must have the same sample rate as defined in constructor
+     * @return the voice print
+     * @throws UnsupportedAudioFileException when the JVM does not support the file format
+     * @throws IOException when an I/O exception occurs
+     * @see Recognito#createVoicePrint(Object, double[], float)
+     */
+    public VoicePrint createVoicePrint(K userKey, String name, File voiceSampleFile) 
+            throws UnsupportedAudioFileException, IOException {
+        
+        double[] audioSample = convertFileToDoubleArray(voiceSampleFile);
+
+        return createVoicePrint(userKey, name, audioSample);
     }
 
     /**
@@ -296,15 +316,17 @@ public class Recognito<K> {
      * @param voiceSample the voice sample, values between -1.0 and 1.0
      * @return a list MatchResults sorted by distance
      */
-    public List<MatchResult<K>> identify(double[] voiceSample) {
+    public List<MatchResult<K>> identify (double[] voiceSample) {
         
         if(store.isEmpty()) {
             throw new IllegalStateException("There is no voice print enrolled in the system yet");
         }
 
-        VoicePrint voicePrint = new VoicePrint(extractFeatures(voiceSample, sampleRate));
+        VoicePrint voicePrint = new VoicePrint("_voiceSample", extractFeatures(voiceSample, sampleRate));
         
         DistanceCalculator calculator = new EuclideanDistanceCalculator();
+//        DistanceCalculator calculator = new ChebyshevDistanceCalculator();
+        
         List<MatchResult<K>> matches = new ArrayList<MatchResult<K>>(store.size());
 
         double distanceFromUniversalModel = voicePrint.getDistance(calculator, universalModel);
@@ -313,7 +335,7 @@ public class Recognito<K> {
             // likelihood : how close is the given voice sample to the current VoicePrint 
             // compared to the total distance between the current VoicePrint and the universal model 
             int likelihood = 100 - (int) (distance / (distance + distanceFromUniversalModel) * 100);
-            matches.add(new MatchResult<K>(entry.getKey(), likelihood, distance));
+            matches.add(new MatchResult<K>(entry.getKey(), entry.getValue().getName(), likelihood, distance));
         }
 
         Collections.sort(matches, new Comparator<MatchResult<K>>() {
@@ -326,7 +348,9 @@ public class Recognito<K> {
         return matches;
     }
   
-    /**
+
+
+	/**
      * Convenience method to identify voice samples from files.
      * <p>
      * See class description for details on files
@@ -337,7 +361,7 @@ public class Recognito<K> {
      * @throws IOException when an I/O exception occurs
      * @see Recognito#identify(double[], float)
      */
-    public  List<MatchResult<K>> identify(File voiceSampleFile) 
+    public  List<MatchResult<K>> identify(File voiceSampleFile ) 
             throws UnsupportedAudioFileException, IOException {
         
         double[] audioSample = convertFileToDoubleArray(voiceSampleFile);
@@ -363,4 +387,8 @@ public class Recognito<K> {
 
         return lpcFeatures;
     }
+
+	public synchronized VoicePrint createVoicePrint(K userKey, double[] voiceSample) {
+		return createVoicePrint(userKey, userKey.toString(), voiceSample);
+	}
 }
