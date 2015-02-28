@@ -28,7 +28,7 @@ public class MatchResult<K> {
     
     private final K key;
     private final String name;
-    private final int likelihoodRatio;
+    private int likelihoodRatio;
     private final double distance;
     
     /**
@@ -58,6 +58,10 @@ public class MatchResult<K> {
      */
     public int getLikelihoodRatio() {
         return likelihoodRatio;
+    }
+    
+    public void setLikelihoodRatio(int i) {
+    	this.likelihoodRatio = i;
     }
     
     /**
